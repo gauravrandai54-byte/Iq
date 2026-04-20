@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Symbol IQ Pro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0B0C10; color: #fff; overflow: hidden; }
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(160deg, #0B0C10 0%, #1F2833 100%); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; overflow-y: auto; }
+.screen.active { opacity: 1; pointer-events: all; }
+#screen-loading { z-index: 100; gap: 24px; }
+.load-brain { font-size: 64px; color: #45A29E; animation: brain-pulse 1.4s ease-in-out infinite; line-height: 1; text-shadow: 0 0 30px rgba(69,162,158,0.5); }
+@keyframes brain-pulse { 0%,100% { transform: scale(1.0); } 50% { transform: scale(1.1); } }
+.load-text { font-size: 1.05rem; color: rgba(255,255,255,0.65); letter-spacing: 0.04em; min-width: 200px; text-align: center; }
+.load-bar-bg { width: 70%; max-width: 300px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.load-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #45A29E, #66FCF1); border-radius: 2px; transition: width 3s cubic-bezier(0.4,0,0.2,1); }
+#screen-menu { padding: 40px 20px; gap: 0; justify-content: flex-start; }
+.menu-card { width: 100%; max-width: 420px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 28px; padding: 36px 28px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); margin-top: auto; margin-bottom: auto; }
+.menu-logo { text-align: center; margin-bottom: 28px; }
+.menu-brain { font-size: 2.8rem; color: #45A29E; display: block; margin-bottom: 12px; }
+.menu-title { font-size: 2.2rem; font-weight: 900; letter-spacing: 0.1em; color: #fff; line-height: 1; }
+.menu-sub { font-size: 0.9rem; color: rgba(255,255,255,0.45); margin-top: 6px; letter-spacing: 0.04em; }
+.menu-btns { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.btn-start { min-height: 58px; width: 100%; background: linear-gradient(135deg, #45A29E 0%, #2E8B84 100%); border: none; border-radius: 16px; color: #fff; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 8px 24px rgba(69,162,158,0.4); -webkit-tap-highlight-color: transparent; }
+.btn-start:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.btn-start:active { transform: scale(0.97); }
+.btn-outline { min-height: 55px; width: 100%; background: transparent; border: 1.5px solid rgba(255,255,255,0.18); border-radius: 16px; color: rgba(255,255,255,0.85); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.05em; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
+.btn-outline:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.35); }
+.btn-outline:active { transform: scale(0.97); }
+.btn-outline.blue { border-color: rgba(69,162,158,0.5); color: #45A29E; }
+.btn-outline.blue:hover { background: rgba(69,162,158,0.1); border-color: #45A29E; }.btn-outline i { font-size: 1rem; }
+.menu-last { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; }
+.last-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(255,255,255,0.3); margin-bottom: 10px; }
+.last-score-val { font-size: 1.1rem; font-weight: 700; color: #45A29E; }
+.history-mini { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.hchip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 99px; padding: 4px 11px; font-size: 0.72rem; color: rgba(255,255,255,0.5); }
+.hchip span { color: #45A29E; font-weight: 700; }
+.no-history { font-size: 0.82rem; color: rgba(255,255,255,0.3); font-style: italic; }
+.motivation-hint { text-align: center; font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 14px; font-style: italic; transition: opacity 0.2s ease; min-height: 20px; }
+#screen-game { justify-content: flex-start; padding: 0; overflow-y: auto; }
+.game-wrap { width: 100%; max-width: 500px; display: flex; flex-direction: column; min-height: 100%; padding: 16px 18px 28px; margin: 0 auto; }
+.game-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; padding-top: 6px; flex-shrink: 0; }
+.topbar-btn { min-height: 42px; min-width: 80px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; color: rgba(255,255,255,0.75); font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; touch-action: manipulation; transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; padding: 0 14px; }
+.topbar-btn:hover { background: rgba(255,255,255,0.11); color: #fff; }
+.topbar-btn:active { transform: scale(0.96); }
+.topbar-btn.icon-only { min-width: 42px; padding: 0; font-size: 1rem; }
+.score-center { display: flex; align-items: center; gap: 7px; background: rgba(69,162,158,0.12); border: 1px solid rgba(69,162,158,0.3); border-radius: 99px; padding: 8px 18px; }
+.score-brain { font-size: 1.1rem; }
+.score-num { font-size: 1.3rem; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; transition: transform 0.2s ease; }
+.score-num.pop { transform: scale(1.35); }
+.round-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; flex-shrink: 0; }
+.round-tag { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.25); border-radius: 99px; padding: 5px 16px; font-size: 0.75rem; font-weight: 700; color: #FFD700; letter-spacing: 0.1em; text-transform: uppercase; }
+.streak-tag { display: none; align-items: center; gap: 6px; background: rgba(255,120,0,0.15); border: 1px solid rgba(255,120,0,0.3); border-radius: 99px; padding: 5px 14px; font-size: 0.72rem; font-weight: 700; color: #FF9500; letter-spacing: 0.06em; animation: pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.streak-tag.show { display: inline-flex; }
+@keyframes pop-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.seq-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; min-height: 88px; display: flex; align-items: center; justify-content: center; padding: 14px 16px; margin-bottom: 10px; flex-shrink: 0; }
+#prompt-seq { font-size: 2.1rem; letter-spacing: 8px; color: #fff; user-select: none; text-align: center; line-height: 1.2; }
+.transform-hint { text-align: center; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(255,255,255,0.25); margin-bottom: 16px; flex-shrink: 0; }
+.feedback-row { min-height: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; flex-shrink: 0; }
+#feedback-txt { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.03em; opacity: 0; transition: opacity 0.2s ease; }
+#feedback-txt.show { opacity: 1; }
+#feedback-txt.ok { color: #4CAF50; }
+#feedback-txt.bad { color: #FF5A5A; }
+#choices { display: flex; flex-direction: column; gap: 11px; margin-bottom: 22px; flex-shrink: 0; }
+.cbtn { width: 100%; min-height: 62px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.13); border-radius: 16px; color: #fff; font-size: 1.5rem; letter-spacing: 8px; display: flex; align-items: center; justify-content: center; padding: 10px 14px; user-select: none; cursor: pointer; touch-action: manipulation; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; -webkit-tap-highlight-color: transparent; }
+.cbtn:hover:not(:disabled) { transform: scale(1.015); background: rgba(69,162,158,0.1); border-color: rgba(69,162,158,0.45); }
+.cbtn:active:not(:disabled) { transform: scale(0.97); }
+.cbtn:disabled { pointer-events: none; }
+.cbtn.flash-ok { background: rgba(76,175,80,0.2); border-color: #4CAF50; box-shadow: 0 0 20px rgba(76,175,80,0.3); }
+.cbtn.flash-bad { background: rgba(255,90,90,0.2); border-color: #FF5A5A; box-shadow: 0 0 20px rgba(255,90,90,0.3); }
+.dots-label { text-align: center; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(255,255,255,0.25); margin-bottom: 8px; }
+#result-dots { display: flex; gap: 10px; justify-content: center; }
+.rdot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.1); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); backdrop-filter: blur(8px); z-index: 60; display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; overflow-y: auto; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.overlay-full { justify-content: flex-start; }
+.overlay-header { display: flex; align-items: center; width: 100%; max-width: 480px; padding: 18px 18px 14px; flex-shrink: 0; }
+.ovh-back { min-height: 42px; min-width: 90px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 6px; justify-content: center; cursor: pointer; touch-action: manipulation; transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
+.ovh-back:hover { background: rgba(255,255,255,0.13); }
+.ovh-title { flex: 1; text-align: center; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; }
+.ovh-spacer { min-width: 90px; }
+.overlay-body { width: 100%; max-width: 480px; padding: 0 18px 32px; flex: 1; }
+.lb-list { display: flex; flex-direction: column; gap: 8px; }
+.lb-row { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 13px 16px; }
+.lb-rank { width: 26px; text-align: center; font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.3); font-variant-numeric: tabular-nums; }
+.lb-row:nth-child(1) .lb-rank { color: #FFD700; }
+.lb-row:nth-child(2) .lb-rank { color: #C0C0C0; }
+.lb-row:nth-child(3) .lb-rank { color: #CD7F32; }
+.lb-name { flex: 1; font-size: 0.9rem; font-weight: 600; color: #fff; }
+.lb-score { font-size: 0.9rem; font-weight: 800; color: #45A29E; font-variant-numeric: tabular-nums; }
+.lb-you { margin-top: 16px; background: rgba(69,162,158,0.12); border: 1px solid rgba(69,162,158,0.3); border-radius: 14px; padding: 13px 16px; text-align: center; font-size: 0.88rem; font-weight: 700; color: #45A29E; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.setting-label { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; font-weight: 600; color: #fff; }
+.setting-label i { color: #45A29E; width: 20px; text-align: center; font-size: 1rem; }
+.tgl { position: relative; width: 48px; height: 28px; cursor: pointer; flex-shrink: 0; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tgl-track { position: absolute; inset: 0; background: rgba(255,255,255,0.12); border-radius: 99px; border: 1px solid rgba(255,255,255,0.15); transition: background 0.2s; }
+.tgl input:checked ~ .tgl-track { background: #45A29E; border-color: #45A29E; }
+.tgl-thumb { position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: transform 0.2s ease; }
+.tgl input:checked ~ .tgl-track .tgl-thumb { transform: translateX(20px); }
+.s-btn { width: 100%; min-height: 52px; background: rgba(255,90,90,0.1); border: 1.5px solid rgba(255,90,90,0.3); border-radius: 14px; color: #FF5A5A; font-size: 0.92rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; touch-action: manipulation; margin-top: 20px; transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
+.s-btn:hover { background: rgba(255,90,90,0.18); }
+.overlay-center { justify-content: center; padding: 24px; }
+.overlay-card { background: #161C26; border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; width: 100%; max-width: 360px; padding: 32px 26px; box-shadow: 0 24px 60px rgba(0,0,0,0.7); text-align: center; transform: translateY(16px) scale(0.97); transition: transform 0.25s ease; }
+.overlay.open .overlay-card { transform: none; }
+.lu-icon { font-size: 3rem; margin-bottom: 14px; animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes bounce-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.lu-score { display: inline-flex; align-items: center; gap: 6px; background: rgba(69,162,158,0.15); border: 1px solid rgba(69,162,158,0.35); border-radius: 99px; padding: 7px 20px; font-size: 1.2rem; font-weight: 900; color: #45A29E; margin: 14px 0 10px; }
+.lu-title { font-size: 1.5rem; font-weight: 900; color: #fff; margin-bottom: 8px; }
+.lu-msg { font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
+.go-score-big { font-size: 3rem; font-weight: 900; color: #45A29E; margin: 16px 0 6px; }
+.go-profile { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.go-sub { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-bottom: 26px; line-height: 1.5; }
+.go-btns { display: flex; flex-direction: column; gap: 10px; }
+.conf-icon { font-size: 2.2rem; margin-bottom: 14px; }
+.conf-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.conf-msg { font-size: 0.85rem; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 22px; }
+.conf-btns { display: flex; gap: 10px; }
+.conf-btns .cbtn-action { flex: 1; }
+.cbtn-action { min-height: 52px; border: none; border-radius: 14px; font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
+.cbtn-action.green { background: linear-gradient(135deg, #45A29E, #2E8B84); color: #fff; box-shadow: 0 6px 20px rgba(69,162,158,0.35); }
+.cbtn-action.green:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.cbtn-action.ghost { background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
+.cbtn-action.ghost:hover { background: rgba(255,255,255,0.11); }
+.cbtn-action.red-ghost { background: rgba(255,90,90,0.1); border: 1.5px solid rgba(255,90,90,0.3); color: #FF5A5A; }
+.cbtn-action.red-ghost:hover { background: rgba(255,90,90,0.18); }
+.cbtn-action:active { transform: scale(0.97) !important; }
+.text-center { text-align: center; }
+.mt8 { margin-top: 8px; }
+.mt16 { margin-top: 16px; }
+.fw7 { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="screen active" id="screen-loading">
+<div class="load-brain"><i class="fas fa-brain"></i></div>
+<div class="load-text" id="load-txt">Preparing Your Test<span id="load-dots"></span></div>
+<div class="load-bar-bg"><div class="load-bar-fill" id="load-bar"></div></div>
+</div>
+<div class="screen" id="screen-menu">
+<div class="menu-card">
+<div class="menu-logo"><span class="menu-brain"><i class="fas fa-brain"></i></span><div class="menu-title">SYMBOL IQ</div><div class="menu-sub">Test Your Brain Power</div></div>
+<div class="menu-btns">
+<button class="btn-start" id="btn-start"><i class="fas fa-bolt"></i> START TEST</button>
+<button class="btn-outline blue" id="btn-lb"><i class="fas fa-ranking-star"></i> LEADERBOARD</button>
+<button class="btn-outline" id="btn-settings-menu"><i class="fas fa-gear"></i> SETTINGS</button>
+</div>
+<div class="menu-last"><div class="last-label">Your Last Score</div><div class="last-score-val" id="last-score-val">---</div><div class="history-mini" id="history-mini"><span class="no-history">No sessions yet</span></div></div>
+<div class="motivation-hint" id="motivation-quote">🧠 Your brain is capable of amazing things</div>
+</div></div>
+<div class="screen" id="screen-game"><div class="game-wrap">
+<div class="game-topbar"><button class="topbar-btn" id="btn-back"><i class="fas fa-arrow-left"></i> MENU</button><div class="score-center"><span class="score-brain">🧠</span><span class="score-num" id="iq-num">85</span></div><button class="topbar-btn icon-only" id="btn-settings-game"><i class="fas fa-gear"></i></button></div>
+<div class="round-row"><div class="round-tag"><i class="fas fa-layer-group"></i> Round <span id="round-num">1</span></div><div class="streak-tag" id="streak-tag">🔥 Streak +5!</div></div>
+<div class="seq-box"><div id="prompt-seq">★ ■ ● ▲</div></div>
+<div class="transform-hint">▼ &nbsp; Pick the correct transformation &nbsp; ▼</div>
+<div class="feedback-row"><div id="feedback-txt"></div></div>
+<div id="choices"></div>
+<div class="dots-label">Recent Results</div>
+<div id="result-dots"><div class="rdot" id="dot-0">—</div><div class="rdot" id="dot-1">—</div><div class="rdot" id="dot-2">—</div></div>
+</div></div><div class="overlay overlay-full" id="ov-lb">
+<div class="overlay-header"><button class="ovh-back" id="btn-lb-back"><i class="fas fa-arrow-left"></i> BACK</button><div class="ovh-title">Top Thinkers</div><div class="ovh-spacer"></div></div>
+<div class="overlay-body"><div class="lb-list" id="lb-list"></div><div class="lb-you" id="lb-you-position">Your Best: --</div></div>
+</div>
+<div class="overlay overlay-full" id="ov-settings">
+<div class="overlay-header"><button class="ovh-back" id="btn-settings-back"><i class="fas fa-arrow-left"></i> BACK</button><div class="ovh-title">Settings</div><div class="ovh-spacer"></div></div>
+<div class="overlay-body">
+<div class="setting-row"><span class="setting-label"><i class="fas fa-volume-up"></i> Sound Effects</span><label class="tgl"><input type="checkbox" id="toggle-sound" checked><span class="tgl-track"><span class="tgl-thumb"></span></span></label></div>
+<div class="setting-row"><span class="setting-label"><i class="fas fa-mobile-alt"></i> Vibration</span><label class="tgl"><input type="checkbox" id="toggle-vibe" checked><span class="tgl-track"><span class="tgl-thumb"></span></span></label></div>
+<button class="s-btn" id="btn-clear-history"><i class="fas fa-trash-alt"></i> Clear All History</button>
+</div></div>
+<div class="overlay overlay-center" id="ov-levelup">
+<div class="overlay-card"><div class="lu-icon"><i class="fas fa-brain"></i></div><div class="lu-title" id="lu-title">Good Start!</div><div class="lu-msg" id="lu-msg">Your brain is waking up!</div><div class="lu-score"><i class="fas fa-star"></i> <span id="lu-score-val">90</span> IQ</div><button class="cbtn-action green" id="btn-lu-continue" style="width:100%">CONTINUE</button></div>
+</div>
+<div class="overlay overlay-center" id="ov-gameover">
+<div class="overlay-card"><div class="lu-icon"><i class="fas fa-trophy"></i></div><div class="go-score-big" id="go-final-iq">100</div><div class="go-profile" id="go-profile">Pattern Savant</div><div class="go-sub" id="go-sub">You reached Round 5</div><div class="go-btns"><button class="cbtn-action green" id="btn-go-playagain"><i class="fas fa-rotate-right"></i> PLAY AGAIN</button><button class="cbtn-action ghost" id="btn-go-menu"><i class="fas fa-house"></i> MAIN MENU</button></div></div>
+</div>
+<div class="overlay overlay-center" id="ov-confirm">
+<div class="overlay-card"><div class="conf-icon"><i class="fas fa-circle-exclamation" style="color:#FFA500"></i></div><div class="conf-title">Quit Test?</div><div class="conf-msg">Your progress will be lost.</div><div class="conf-btns"><button class="cbtn-action red-ghost" id="btn-confirm-yes">YES, QUIT</button><button class="cbtn-action green" id="btn-confirm-no">CANCEL</button></div></div>
+</div>
+<script>
+(function(){ "use strict";
+const screens={loading:document.getElementById('screen-loading'),menu:document.getElementById('screen-menu'),game:document.getElementById('screen-game')};
+const overlays={lb:document.getElementById('ov-lb'),settings:document.getElementById('ov-settings'),levelup:document.getElementById('ov-levelup'),gameover:document.getElementById('ov-gameover'),confirm:document.getElementById('ov-confirm')};
+const iqNum=document.getElementById('iq-num'),roundNum=document.getElementById('round-num'),promptSeq=document.getElementById('prompt-seq'),choicesDiv=document.getElementById('choices'),feedbackTxt=document.getElementById('feedback-txt'),streakTag=document.getElementById('streak-tag');
+const dots=[document.getElementById('dot-0'),document.getElementById('dot-1'),document.getElementById('dot-2')];
+const lastScoreVal=document.getElementById('last-score-val'),historyMini=document.getElementById('history-mini'),lbList=document.getElementById('lb-list'),lbYouPos=document.getElementById('lb-you-position'),motivationQuote=document.getElementById('motivation-quote');
+const toggleSound=document.getElementById('toggle-sound'),toggleVibe=document.getElementById('toggle-vibe');
+const luTitle=document.getElementById('lu-title'),luMsg=document.getElementById('lu-msg'),luScoreVal=document.getElementById('lu-score-val');
+const goFinalIq=document.getElementById('go-final-iq'),goProfile=document.getElementById('go-profile'),goSub=document.getElementById('go-sub');
+const btnStart=document.getElementById('btn-start'),btnLb=document.getElementById('btn-lb'),btnSettingsMenu=document.getElementById('btn-settings-menu'),btnBack=document.getElementById('btn-back'),btnSettingsGame=document.getElementById('btn-settings-game'),btnLbBack=document.getElementById('btn-lb-back'),btnSettingsBack=document.getElementById('btn-settings-back'),btnClearHistory=document.getElementById('btn-clear-history'),btnLuContinue=document.getElementById('btn-lu-continue'),btnGoPlayAgain=document.getElementById('btn-go-playagain'),btnGoMenu=document.getElementById('btn-go-menu'),btnConfirmYes=document.getElementById('btn-confirm-yes'),btnConfirmNo=document.getElementById('btn-confirm-no');
+const MASTER_SYMBOLS=['★','■','●','▲','◆'];
+let iqScore=85,currentRound=1,currentSequence=[],correctAnswerIndex=0,canGuess=!0,gameActive=!0,streakCount=0,recentResults=[null,null,null],audioCtx=null,soundEnabled=!0,vibeEnabled=!0,lastAnnouncedLevel=85;
+const IQ_LEVELS=[{threshold:90,title:'Good Start!',msg:'Your brain is waking up!'},{threshold:100,title:'Nice!',msg:'You reached average score!'},{threshold:115,title:'Smart!',msg:'You are above average!'},{threshold:130,title:'Very Smart!',msg:'Top 2% of people!'},{threshold:145,title:'Genius!',msg:'Amazing brain power!'},{threshold:160,title:'Perfect!',msg:'Almost maximum score!'}];
+const LEADERBOARD=[{name:'Alex Turing',score:162},{name:'Marie Curie',score:158},{name:'Leo da Vinci',score:155},{name:'Kim Johnson',score:152},{name:'Sam Raman',score:150},{name:'Helen Hypatia',score:148},{name:'Nikola Tesla',score:145},{name:'Rose Franklin',score:142},{name:'Charles Darwin',score:140},{name:'Grace Hopper',score:138}];
+const QUOTES=['🧠 Your brain is capable of amazing things','💪 Every challenge makes you stronger','🎯 Focus. Pattern. Succeed.','⭐ Small steps every day lead to big results','🔥 Your potential is limitless','✨ Believe in your abilities','🌟 You are smarter than you think','⚡ Train your brain. Unlock your power.','🎮 Play. Learn. Grow.','🏆 Consistency beats talent every time'];
+let quoteIndex=Math.floor(Math.random()*QUOTES.length);
+motivationQuote.textContent=QUOTES[quoteIndex];
+motivationQuote.style.transition='opacity 0.2s ease';
+setInterval(()=>{let n;do{n=Math.floor(Math.random()*QUOTES.length)}while(n===quoteIndex&&QUOTES.length>1);quoteIndex=n;motivationQuote.style.opacity='0';setTimeout(()=>{motivationQuote.textContent=QUOTES[quoteIndex];motivationQuote.style.opacity='1'},200)},5000);
+function switchScreen(e){Object.values(screens).forEach(e=>e.classList.remove('active'));screens[e].classList.add('active')}
+function openOverlay(e){e.classList.add('open')}
+function closeOverlay(e){e.classList.remove('open')}
+function vibrate(e){vibeEnabled&&navigator.vibrate&&navigator.vibrate(e)}
+function initAudio(){if(!audioCtx)try{audioCtx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){console.warn('Web Audio not supported')}}
+function resumeAudio(){audioCtx&&'suspended'===audioCtx.state&&audioCtx.resume()}
+function playSound(e){if(!soundEnabled||!audioCtx)return;resumeAudio();let t=audioCtx.currentTime,o=audioCtx.createOscillator(),n=audioCtx.createGain();if(o.connect(n),n.connect(audioCtx.destination),'tap'===e)o.frequency.value=440,n.gain.setValueAtTime(.1,t),n.gain.exponentialRampToValueAtTime(.001,t+.05),o.start(),o.stop(t+.05);else if('correct'===e)o.frequency.value=523.25,n.gain.setValueAtTime(.08,t),n.gain.exponentialRampToValueAtTime(.001,t+.1),o.start(),o.frequency.setValueAtTime(659.25,t+.06),o.stop(t+.12);else if('wrong'===e)o.frequency.value=110,n.gain.setValueAtTime(.15,t),n.gain.exponentialRampToValueAtTime(.001,t+.2),o.start(),o.stop(t+.2);else if('levelup'===e)[523.25,659.25,783.99,1046.5].forEach((e,i)=>{let l=audioCtx.createOscillator(),a=audioCtx.createGain();l.connect(a),a.connect(audioCtx.destination),l.frequency.value=e,a.gain.setValueAtTime(.06,t+.08*i),a.gain.exponentialRampToValueAtTime(.001,t+.08*i+.15),l.start(t+.08*i),l.stop(t+.08*i+.15)})}function saveScoreToHistory(e,t){let o=JSON.parse(localStorage.getItem('iqHistory')||'[]'),n=new Date,i=`${n.getMonth()+1}/${n.getDate()}`;o.unshift({date:i,score:e,round:t}),o.length>10&&o.pop(),localStorage.setItem('iqHistory',JSON.stringify(o)),localStorage.setItem('lastIq',e),updateMenuHistory()}
+function updateMenuHistory(){let e=JSON.parse(localStorage.getItem('iqHistory')||'[]'),t=localStorage.getItem('lastIq');t?lastScoreVal.textContent=`🧠 ${t} IQ`:lastScoreVal.textContent='---';0===e.length?historyMini.innerHTML='<span class="no-history">No sessions yet</span>':historyMini.innerHTML=e.slice(0,5).map(e=>`<span class="hchip">${e.date} <span>${e.score}</span></span>`).join('')}
+function getBestScore(){let e=JSON.parse(localStorage.getItem('iqHistory')||'[]');return 0===e.length?0:Math.max(...e.map(e=>e.score))}
+function renderLeaderboard(){lbList.innerHTML=LEADERBOARD.map((e,t)=>`<div class="lb-row"><span class="lb-rank">${t+1}</span><span class="lb-name">${e.name}</span><span class="lb-score">${e.score}</span></div>`).join('');let e=getBestScore();if(e>0){let t=LEADERBOARD.findIndex(t=>t.score<e)+1;0===t&&(t=LEADERBOARD.length+1);lbYouPos.textContent=`Your Best: ${e} IQ • Rank #${t}`}else lbYouPos.textContent='Your Best: -- • Complete a test!'}
+function updateResultDots(e){recentResults.push(e),recentResults.shift(),recentResults.forEach((e,t)=>{!0===e?(dots[t].innerHTML='✓',dots[t].style.background='rgba(76,175,80,0.3)',dots[t].style.color='#4CAF50'):!1===e?(dots[t].innerHTML='✗',dots[t].style.background='rgba(255,90,90,0.3)',dots[t].style.color='#FF5A5A'):(dots[t].innerHTML='—',dots[t].style.background='rgba(255,255,255,0.1)',dots[t].style.color='rgba(255,255,255,0.4)')})}
+function updateIqDisplay(e=!0){iqNum.textContent=iqScore;e&&(iqNum.classList.add('pop'),setTimeout(()=>iqNum.classList.remove('pop'),200))}
+function checkLevelUp(){for(let e of IQ_LEVELS)if(iqScore>=e.threshold&&lastAnnouncedLevel<e.threshold)return lastAnnouncedLevel=e.threshold,luTitle.textContent=e.title,luMsg.textContent=e.msg,luScoreVal.textContent=iqScore,openOverlay(overlays.levelup),playSound('levelup'),vibrate(100),!0;return!1}
+function generateSequence(e){let t=[];for(let o=0;o<e;o++)t.push(MASTER_SYMBOLS[Math.floor(Math.random()*MASTER_SYMBOLS.length)]);return t}
+function applyRule(e,t){let o=[...e];if('rotate'===t){let e=o.pop();o.unshift(e)}else if('increment'===t)for(let e=0;e<o.length;e++){let t=MASTER_SYMBOLS.indexOf(o[e]);o[e]=MASTER_SYMBOLS[(t+1)%MASTER_SYMBOLS.length]}else'rotate'!==t&&'increment'!==t||o.reverse();return o}
+function shuffleArray(e){for(let t=e.length-1;t>0;t--){let o=Math.floor(Math.random()*(t+1));[e[t],e[o]]=[e[o],e[t]]}return e}
+function generateNewRound(){let e=Math.min(3+Math.floor(currentRound/3),7);currentSequence=generateSequence(e);let t=['rotate','increment','mirror'],o=t[Math.floor(Math.random()*t.length)],n=applyRule(currentSequence,o),i,l;do{i=shuffleArray([...n])}while(JSON.stringify(i)===JSON.stringify(n));do{l=shuffleArray([...n])}while(JSON.stringify(l)===JSON.stringify(n)||JSON.stringify(l)===JSON.stringify(i));let a=[n,i,l],r=shuffleArray([...a]);correctAnswerIndex=r.findIndex(e=>JSON.stringify(e)===JSON.stringify(n));promptSeq.textContent=currentSequence.join(' ');roundNum.textContent=currentRound;choicesDiv.innerHTML='';r.forEach((e,t)=>{let o=document.createElement('button');o.className='cbtn';o.textContent=e.join(' ');o.addEventListener('click',()=>handleChoice(t));choicesDiv.appendChild(o)});canGuess=!0;streakTag.classList.remove('show')}
+function handleChoice(e){if(!gameActive||!canGuess)return;canGuess=!1;let t=document.querySelectorAll('.cbtn');t.forEach(e=>e.disabled=!0);playSound('tap');vibrate(10);let o=e===correctAnswerIndex;if(o){t[e].classList.add('flash-ok');let n=3;streakCount++,streakCount>=3?(n+=5,streakTag.classList.add('show'),streakCount=0,playSound('correct'),vibrate(50)):(playSound('correct'),vibrate(10));iqScore=Math.min(165,iqScore+n);updateIqDisplay(!0);updateResultDots(!0);feedbackTxt.textContent=`+${n} IQ!`;feedbackTxt.className='show ok';currentRound++;setTimeout(()=>{feedbackTxt.classList.remove('show');t.forEach(e=>e.classList.remove('flash-ok'));let n=checkLevelUp(),i=()=>{gameActive&&generateNewRound()};if(n){let e=()=>{closeOverlay(overlays.levelup),i(),btnLuContinue.removeEventListener('click',e)};btnLuContinue.addEventListener('click',e)}else i()},600)}else{t[e].classList.add('flash-bad');t[correctAnswerIndex].classList.add('flash-ok');playSound('wrong');vibrate([50,30,50]);updateResultDots(!1);feedbackTxt.textContent='Wrong! Game Over';feedbackTxt.className='show bad';gameActive=!1;setTimeout(()=>{feedbackTxt.classList.remove('show');saveScoreToHistory(iqScore,currentRound);goFinalIq.textContent=iqScore;goSub.textContent=`You reached Round ${currentRound}`;iqScore<100?goProfile.textContent='Analytical Observer':iqScore<115?goProfile.textContent='Pattern Savant':iqScore<130?goProfile.textContent='Cognitive Elite':iqScore<145?goProfile.textContent='Master Thinker':goProfile.textContent='Genius Level';openOverlay(overlays.gameover);t.forEach(e=>{e.classList.remove('flash-ok','flash-bad'),e.disabled=!1})},600)}}
+function resetGame(){iqScore=85;currentRound=1;streakCount=0;gameActive=!0;canGuess=!0;recentResults=[null,null,null];lastAnnouncedLevel=85;updateIqDisplay(!1);updateResultDots(null);generateNewRound();streakTag.classList.remove('show');feedbackTxt.classList.remove('show')}
+window.addEventListener('load',()=>{let e=document.getElementById('load-bar'),t=document.getElementById('load-dots'),o=0,n=setInterval(()=>{o=(o+1)%4,t.textContent='.'.repeat(o)},400);setTimeout(()=>{e.style.width='100%'},50);setTimeout(()=>{clearInterval(n),screens.loading.classList.remove('active'),screens.menu.classList.add('active'),updateMenuHistory()},3000)});
+btnStart.addEventListener('click',()=>{initAudio(),resumeAudio(),resetGame(),switchScreen('game'),vibrate(10)});
+btnLb.addEventListener('click',()=>{renderLeaderboard(),openOverlay(overlays.lb),vibrate(10)});
+btnSettingsMenu.addEventListener('click',()=>{openOverlay(overlays.settings),vibrate(10)});
+btnSettingsGame.addEventListener('click',()=>{openOverlay(overlays.settings),vibrate(10)});
+btnBack.addEventListener('click',()=>{gameActive?openOverlay(overlays.confirm):(switchScreen('menu'),updateMenuHistory());vibrate(10)});
+btnConfirmYes.addEventListener('click',()=>{closeOverlay(overlays.confirm),gameActive=!1,switchScreen('menu'),updateMenuHistory(),vibrate(10)});
+btnConfirmNo.addEventListener('click',()=>{closeOverlay(overlays.confirm),vibrate(10)});
+btnLbBack.addEventListener('click',()=>{closeOverlay(overlays.lb),vibrate(10)});
+btnSettingsBack.addEventListener('click',()=>{closeOverlay(overlays.settings),vibrate(10)});
+btnClearHistory.addEventListener('click',e=>{e.stopPropagation(),localStorage.removeItem('iqHistory'),localStorage.removeItem('lastIq'),updateMenuHistory(),closeOverlay(overlays.settings),playSound('tap'),vibrate(50)});
+btnGoPlayAgain.addEventListener('click',()=>{closeOverlay(overlays.gameover),resetGame(),vibrate(10)});
+btnGoMenu.addEventListener('click',()=>{closeOverlay(overlays.gameover),switchScreen('menu'),updateMenuHistory(),vibrate(10)});
+toggleSound.addEventListener('change',e=>{soundEnabled=e.target.checked,localStorage.setItem('soundEnabled',soundEnabled),soundEnabled&&initAudio(),vibrate(5)});
+toggleVibe.addEventListener('change',e=>{vibeEnabled=e.target.checked,localStorage.setItem('vibeEnabled',vibeEnabled),vibrate(5)});
+!function(){let e=localStorage.getItem('soundEnabled');null!==e&&(soundEnabled='true'===e,toggleSound.checked=soundEnabled);let t=localStorage.getItem('vibeEnabled');null!==t&&(vibeEnabled='true'===t,toggleVibe.checked=vibeEnabled)}();
+document.body.addEventListener('click',()=>{audioCtx&&'suspended'===audioCtx.state&&audioCtx.resume()},{once:!0});
+})();
+</script>
+</body>
+</html>
