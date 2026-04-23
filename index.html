@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbol IQ Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            margin: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: #00ff88;
+            color: black;
+        }
+
+        .btn-score {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-leaderboard {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .shape-btn {
+            width: 120px;
+            height: 120px;
+            font-size: 50px;
+            border: 3px solid #333;
+            border-radius: 20px;
+            background: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shape-btn:active {
+            transform: scale(0.9);
+            background: #00ff88;
+        }
+
+        .score-display {
+            font-size: 48px;
+            color: #00ff88;
+            margin: 20px 0;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+
+        .leaderboard-list li {
+            background: #1a1a1a;
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: white;
+            margin: 10px;
+        }
+
+        /* Loading Animation */
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loadingScreen" class="screen active">
+        <div class="loader"></div>
+        <h2>Loading Game...</h2>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="screen">
+        <h1>🧠 Symbol IQ Pro</h1>
+        <p style="margin:10px 0;">Test your memory!</p>
+        <div id="highScoreDisplay" style="color:#ffd700;margin:10px 0;">🏆 Best: 0</div>
+        <input type="text" id="playerName" placeholder="Enter your name" maxlength="15">
+        <br>
+        <button class="btn btn-start" onclick="startGame()">▶️ PLAY</button>
+        <button class="btn btn-leaderboard" onclick="showLeaderboardScreen()">🏆 Leaderboard</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="screen">
+        <h2>Level: <span id="levelDisplay">1</span></h2>
+        <div class="score-display">Score: <span id="scoreDisplay">0</span></div>
+        <p id="gameMessage" style="margin:10px;">Watch carefully!</p>
+        <div class="game-grid">
+            <button class="shape-btn" onclick="playerClick(0)" id="btn0">⬛</button>
+            <button class="shape-btn" onclick="playerClick(1)" id="btn1">🔴</button>
+            <button class="shape-btn" onclick="playerClick(2)" id="btn2">🔺</button>
+            <button class="shape-btn" onclick="playerClick(3)" id="btn3">⭐</button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD SCREEN -->
+    <div id="leaderboardScreen" class="screen">
+        <h2>🏆 Leaderboard</h2>
+        <ul class="leaderboard-list" id="leaderboardList"></ul>
+        <button class="btn btn-start" onclick="showScreen('startScreen')">🔙 Back</button>
+        <button class="btn btn-score" onclick="clearAllScores()">🗑️ Clear All</button>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="gameOverScreen" class="screen">
+        <h1 id="gameOverTitle">Game Over!</h1>
+        <h2 style="color:#00ff88;">Final Score: <span id="finalScore">0</span></h2>
+        <p>Level Reached: <span id="finalLevel">1</span></p>
+        <p id="gameOverMessage"></p>
+        <button class="btn btn-start" onclick="restartGame()">🔄 Play Again</button>
+        <button class="btn btn-leaderboard" onclick="showLeaderboardScreen()">🏆 Leaderboard</button>
+    </div>
+
+<script>
+// ============================================
+// 🔥 ALL-IN-ONE GAME CODE
+// Backend + Frontend + Everything
+// ============================================
+
+// ---------- GAME STATE ----------
+let gameSequence = [];
+let playerSequence = [];
+let level = 1;
+let score = 0;
+let isShowingSequence = false;
+let playerName = 'Player';
+let canClick = false;
+
+// ---------- SCREEN MANAGER ----------
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    
+    if (screenId === 'leaderboardScreen') {
+        displayLeaderboard();
+    }
+    if (screenId === 'startScreen') {
+        updateHighScoreDisplay();
+    }
+}
+
+// ---------- LOCAL STORAGE (Built-in Backend) ----------
+function saveScore(name, points, lvl) {
+    // Save to local storage
+    const scores = getAllScores();
+    scores.push({
+        name: name,
+        score: points,
+        level: lvl,
+        date: new Date().toLocaleDateString()
+    });
+    
+    // Sort by score
+    scores.sort((a, b) => b.score - a.score);
+    
+    // Keep top 50
+    const topScores = scores.slice(0, 50);
+    localStorage.setItem('iqGameScores', JSON.stringify(topScores));
+    
+    // Update high score
+    const best = getHighScore();
+    if (points > best) {
+        localStorage.setItem('iqGameHighScore', points);
+    }
+    
+    console.log('✅ Score saved! Total scores:', topScores.length);
+}
+
+function getAllScores() {
+    const data = localStorage.getItem('iqGameScores');
+    return data ? JSON.parse(data) : [];
+}
+
+function getHighScore() {
+    return parseInt(localStorage.getItem('iqGameHighScore') || '0');
+}
+
+function updateHighScoreDisplay() {
+    document.getElementById('highScoreDisplay').textContent = '🏆 Best: ' + getHighScore();
+}
+
+function clearAllScores() {
+    if (confirm('Delete ALL scores?')) {
+        localStorage.removeItem('iqGameScores');
+        localStorage.removeItem('iqGameHighScore');
+        displayLeaderboard();
+        updateHighScoreDisplay();
+        alert('All scores cleared!');
+    }
+}
+
+// ---------- LEADERBOARD DISPLAY ----------
+function displayLeaderboard() {
+    const scores = getAllScores();
+    const list = document.getElementById('leaderboardList');
+    
+    if (scores.length === 0) {
+        list.innerHTML = '<li>No scores yet! Play now!</li>';
+        return;
+    }
+    
+    list.innerHTML = scores.map((s, i) => `
+        <li>
+            <span>#${i+1} ${s.name}</span>
+            <span style="color:#00ff88;">${s.score}</span>
+        </li>
+    `).join('');
+}
+
+// ---------- GAME LOGIC ----------
+function startGame() {
+    playerName = document.getElementById('playerName').value || 'Player';
+    level = 1;
+    score = 0;
+    gameSequence = [];
+    playerSequence = [];
+    
+    document.getElementById('scoreDisplay').textContent = '0';
+    document.getElementById('levelDisplay').textContent = '1';
+    
+    showScreen('gameScreen');
+    nextLevel();
+}
+
+function nextLevel() {
+    playerSequence = [];
+    const shapes = [0, 1, 2, 3];
+    const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+    gameSequence.push(randomShape);
+    
+    document.getElementById('levelDisplay').textContent = level;
+    document.getElementById('gameMessage').textContent = '👀 Watch carefully...';
+    
+    showSequence();
+}
+
+function showSequence() {
+    isShowingSequence = true;
+    canClick = false;
+    let i = 0;
+    
+    const interval = setInterval(() => {
+        if (i > 0) {
+            // Reset previous button
+            document.getElementById('btn' + gameSequence[i-1]).style.background = '#1a1a1a';
+        }
+        
+        if (i < gameSequence.length) {
+            // Highlight current shape
+            document.getElementById('btn' + gameSequence[i]).style.background = '#00ff88';
+            i++;
+        } else {
+            clearInterval(interval);
+            document.getElementById('gameMessage').textContent = '🎯 Your turn!';
+            canClick = true;
+            isShowingSequence = false;
+        }
+    }, 800 - (level * 30)); // Speed increases with level
+}
+
+function playerClick(shapeIndex) {
+    if (!canClick || isShowingSequence) return;
+    
+    // Highlight click
+    const btn = document.getElementById('btn' + shapeIndex);
+    btn.style.background = '#ff6b6b';
+    setTimeout(() => {
+        btn.style.background = '#1a1a1a';
+    }, 200);
+    
+    playerSequence.push(shapeIndex);
+    
+    // Check if correct
+    const currentIndex = playerSequence.length - 1;
+    if (playerSequence[currentIndex] !== gameSequence[currentIndex]) {
+        gameOver();
+        return;
+    }
+    
+    // Check if sequence complete
+    if (playerSequence.length === gameSequence.length) {
+        score += level * 100;
+        document.getElementById('scoreDisplay').textContent = score;
+        level++;
+        setTimeout(nextLevel, 1000);
+    }
+}
+
+function gameOver() {
+    canClick = false;
+    
+    // Save score
+    saveScore(playerName, score, level);
+    
+    // Show game over screen
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalLevel').textContent = level;
+    document.getElementById('gameOverTitle').textContent = 
+        score > getHighScore() ? '🎉 NEW HIGH SCORE!' : 'Game Over!';
+    
+    const best = getHighScore();
+    document.getElementById('gameOverMessage').textContent = 
+        score >= best ? 'Amazing! You got the highest score!' : 'Keep trying!';
+    
+    showScreen('gameOverScreen');
+}
+
+function restartGame() {
+    score = 0;
+    level = 1;
+    gameSequence = [];
+    playerSequence = [];
+    document.getElementById('scoreDisplay').textContent = '0';
+    document.getElementById('levelDisplay').textContent = '1';
+    showScreen('startScreen');
+}
+
+function showLeaderboardScreen() {
+    displayLeaderboard();
+    showScreen('leaderboardScreen');
+}
+
+// ---------- GAME INITIALIZATION ----------
+window.onload = function() {
+    console.log('🎮 Game Ready!');
+    console.log('📊 Scores stored in browser local storage');
+    console.log('🏆 High Score:', getHighScore());
+    
+    // Show loading screen briefly
+    setTimeout(() => {
+        showScreen('startScreen');
+        updateHighScoreDisplay();
+    }, 1500);
+};
+
+// ---------- KEYBOARD CONTROLS ----------
+document.addEventListener('keydown', (e) => {
+    if (!canClick) return;
+    
+    const keys = {
+        '1': 0, '2': 1, '3': 2, '4': 3,
+        'q': 0, 'w': 1, 'e': 2, 'r': 3
+    };
+    
+    if (keys[e.key] !== undefined) {
+        playerClick(keys[e.key]);
+    }
+});
+
+console.log('✅ ALL-IN-ONE GAME LOADED SUCCESSFULLY!');
+console.log('🖥️  Backend: Browser Local Storage');
+console.log('🎯 Frontend: HTML/CSS/JavaScript');
+console.log('📱 Works offline & online!');
+</script>
+
+</body>
+  </html>
